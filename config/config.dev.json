@@ -1,0 +1,13 @@
+{
+  "db": {
+    "host": "localhost",
+    "user": "dbuser",
+    "password": "dbpass",
+    "name": "my_db"
+  },
+  "app": {
+   "name": "guardrail_challenge",
+   "port": 8080,
+   "max_process": 16
+  }
+}

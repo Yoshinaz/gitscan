@@ -76,3 +76,17 @@ func (mr *MockInterfaceMockRecorder) Process(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Process", reflect.TypeOf((*MockInterface)(nil).Process), arg0)
 }
+
+// RuleSet mocks base method.
+func (m *MockInterface) RuleSet() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RuleSet")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// RuleSet indicates an expected call of RuleSet.
+func (mr *MockInterfaceMockRecorder) RuleSet() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RuleSet", reflect.TypeOf((*MockInterface)(nil).RuleSet))
+}

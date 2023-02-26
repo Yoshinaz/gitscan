@@ -80,6 +80,21 @@ func (mr *MockInfoInterfaceMockRecorder) FindByURLAndStatus(arg0, arg1 interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByURLAndStatus", reflect.TypeOf((*MockInfoInterface)(nil).FindByURLAndStatus), arg0, arg1)
 }
 
+// FindRecoveryInfo mocks base method.
+func (m *MockInfoInterface) FindRecoveryInfo() ([]database.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindRecoveryInfo")
+	ret0, _ := ret[0].([]database.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindRecoveryInfo indicates an expected call of FindRecoveryInfo.
+func (mr *MockInfoInterfaceMockRecorder) FindRecoveryInfo() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRecoveryInfo", reflect.TypeOf((*MockInfoInterface)(nil).FindRecoveryInfo))
+}
+
 // Update mocks base method.
 func (m *MockInfoInterface) Update(arg0 database.Info) (database.Info, error) {
 	m.ctrl.T.Helper()

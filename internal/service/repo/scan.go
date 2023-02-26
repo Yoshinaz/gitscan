@@ -16,9 +16,10 @@ import (
 
 // Scan for a request github repository url to find a secret in all commit history
 // don't scan for the duplicate url with the same head commit
-func Scan(r Interface, db database.DB, working chan bool) (string, error) {
+func Scan(r Interface, scanAllCommit bool, db database.DB, working chan bool) (string, error) {
 	url := r.URL()
 	name := r.Name()
+	ruleSet := r.Rules().RuleSet()
 
 	l := log.With().Str("url", url).Logger()
 	l.Info().Msg("scan begin")
@@ -55,20 +56,19 @@ func Scan(r Interface, db database.DB, working chan bool) (string, error) {
 		return reqError.INTERNAL_ERROR.String(), err
 	}
 
-	scanAllCommit := false
 	//create a new info record for the first time
 	if err == gorm.ErrRecordNotFound {
 		infoDB, err = db.Info().Create(database.Info{
 			Name:        name,
 			URL:         url,
 			Status:      status.QUEUED.String(),
+			RuleSet:     ruleSet,
 			Commit:      headCommit,
 			Description: "",
 			EnqueuedAt:  time.Now(),
 			StartedAt:   nil,
 			FinishedAt:  nil,
 		})
-		scanAllCommit = true
 	}
 
 	if err != nil {
@@ -79,13 +79,18 @@ func Scan(r Interface, db database.DB, working chan bool) (string, error) {
 
 	l.Info().Msgf("enqueued for the latest commit %s", infoDB.Commit)
 	infoDB.Status = status.QUEUED.String()
+
+	ProcessScan(r, infoDB, db, scanAllCommit, working)
+
+	return infoDB.Status, nil
+}
+
+func ProcessScan(r Interface, infoDB database.Info, db database.DB, scanAllCommit bool, working chan bool) {
 	// create go routine to wait until a free slot exist
 	go func() {
 		working <- true
 		go process(r, infoDB, db, scanAllCommit, working)
 	}()
-
-	return infoDB.Status, nil
 }
 
 // process scan a request github repository url
@@ -120,10 +125,6 @@ func process(r Interface, infoDB database.Info, db database.DB, scanAllCommit bo
 	skip := false
 	// iterates over the commits
 	err = cIter.ForEach(func(c *object.Commit) error {
-		// stop when meet the latest scan commit
-		if c.Hash.String() == infoDB.Commit {
-			skip = true
-		}
 		if !skip || scanAllCommit {
 			findings, err := r.Rules().Process(c)
 			if err != nil {
@@ -139,6 +140,10 @@ func process(r Interface, infoDB database.Info, db database.DB, scanAllCommit bo
 				l.Error().Msgf("could not save finding result: %s", err.Error())
 
 				return errWrap
+			}
+			// stop after scan the latest scan commit
+			if c.Hash.String() == infoDB.Commit {
+				skip = true
 			}
 		}
 		return nil

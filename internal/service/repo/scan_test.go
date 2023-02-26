@@ -36,6 +36,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(1).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{Status: status.QUEUED.String(), Commit: commit}, nil)
@@ -44,9 +45,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(nil)
 		repoMock.EXPECT().Clone()
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.QUEUED.String(), s)
@@ -59,6 +62,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(1).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{Status: status.QUEUED.String(), Commit: commit}, nil)
@@ -66,9 +70,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.QUEUED.String(), s)
@@ -81,6 +87,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(1).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{Status: status.INPROGRESS.String(), Commit: commit}, nil)
@@ -88,9 +95,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.INPROGRESS.String(), s)
@@ -103,6 +112,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(1).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{Status: status.SUCCESS.String(), Commit: commit}, nil)
@@ -110,9 +120,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.SUCCESS.String(), s)
@@ -125,6 +137,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		infoData := database.Info{Status: status.FAILED.String(), Commit: commit}
 		db.EXPECT().Info().Times(1).Return(dbInfo)
@@ -133,10 +146,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		//process expected call
 		numCommit, err := getNumberOfCommit(repository)
-		rulesData := ruleMocks.NewMockInterface(ctrl)
 		repoMock.EXPECT().URL().Return(url)
 		repoMock.EXPECT().Repo().Times(2).Return(repository)
 		db.EXPECT().Info().Times(2).Return(dbInfo)
@@ -145,7 +159,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -159,6 +173,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		infoData := database.Info{Status: status.SUCCESS.String(), Commit: "some commit"}
 		db.EXPECT().Info().Times(1).Return(dbInfo)
@@ -167,10 +182,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		//process expected call
 		numCommit, err := getNumberOfCommit(repository)
-		rulesData := ruleMocks.NewMockInterface(ctrl)
 		repoMock.EXPECT().URL().Return(url)
 		repoMock.EXPECT().Repo().Times(2).Return(repository)
 		db.EXPECT().Info().Times(2).Return(dbInfo)
@@ -179,7 +195,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -193,6 +209,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(2).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{}, gorm.ErrRecordNotFound)
@@ -201,10 +218,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		//process expected call
 		numCommit, err := getNumberOfCommit(repository)
-		rulesData := ruleMocks.NewMockInterface(ctrl)
 		repoMock.EXPECT().URL().Return(url)
 		repoMock.EXPECT().Repo().Times(2).Return(repository)
 		db.EXPECT().Info().Times(2).Return(dbInfo)
@@ -213,7 +231,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -225,14 +243,17 @@ func TestRepo_Scan(t *testing.T) {
 		defer ctrl.Finish()
 		db := dbMocks.NewMockDB(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		repoMock.EXPECT().URL().Return(url)
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().Repo().Return(nil)
 		repoMock.EXPECT().Clone().Return(errors.New("clone error"))
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.URL_ERROR.String(), s)
@@ -243,14 +264,17 @@ func TestRepo_Scan(t *testing.T) {
 		defer ctrl.Finish()
 		db := dbMocks.NewMockDB(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		repoMock.EXPECT().URL().Return(url)
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
 		repoMock.EXPECT().GetHeadCommitHash().Return("", errors.New("head error"))
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.HEAD_ERROR.String(), s)
@@ -262,6 +286,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(1).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{}, errors.New("db error"))
@@ -269,9 +294,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.INTERNAL_ERROR.String(), s)
@@ -283,6 +310,7 @@ func TestRepo_Scan(t *testing.T) {
 		db := dbMocks.NewMockDB(ctrl)
 		dbInfo := dbMocks.NewMockInfoInterface(ctrl)
 		repoMock := repoMocks.NewMockInterface(ctrl)
+		rulesData := ruleMocks.NewMockInterface(ctrl)
 
 		db.EXPECT().Info().Times(2).Return(dbInfo)
 		dbInfo.EXPECT().Find(database.Info{URL: url}).Return(database.Info{}, gorm.ErrRecordNotFound)
@@ -291,9 +319,11 @@ func TestRepo_Scan(t *testing.T) {
 		repoMock.EXPECT().Name().Return(name)
 		repoMock.EXPECT().GetHeadCommitHash().Return(commit, nil)
 		repoMock.EXPECT().Repo().Return(&gitLib.Repository{})
+		repoMock.EXPECT().Rules().Return(rulesData)
+		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, db, w)
+		s, err := repo.Scan(repoMock, false, db, w)
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.INTERNAL_ERROR.String(), s)
 	})

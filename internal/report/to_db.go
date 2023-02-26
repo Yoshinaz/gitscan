@@ -3,16 +3,17 @@ package report
 import (
 	"github.com/gitscan/constants/status"
 	"github.com/gitscan/internal/database"
+	"gorm.io/gorm"
 	"strings"
 )
 
 func SaveFindings(infoID string, commit string, findings []Finding, db database.DB) error {
-	if len(findings) == 0 {
-		return nil
-	}
-
 	dbFindings := make([]database.Finding, 0)
 	for _, v := range findings {
+		if isFindingExist(infoID, commit, db) {
+			continue
+		}
+
 		record := database.Finding{
 			InfoID: infoID,
 			Type:   v.Type,
@@ -31,6 +32,15 @@ func SaveFindings(infoID string, commit string, findings []Finding, db database.
 	err = saveLocation(infoID, commit, findings, db)
 
 	return err
+}
+
+func isFindingExist(infoID string, commit string, db database.DB) bool {
+	_, err := db.Finding().FindByInfoIDAndCommit(infoID, commit)
+	if err != gorm.ErrRecordNotFound {
+		return true
+	}
+
+	return false
 }
 
 func saveLocation(infoID string, commit string, findings []Finding, db database.DB) error {

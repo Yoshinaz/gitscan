@@ -30,6 +30,10 @@ func (c finding) Create(input Finding) (Finding, error) {
 }
 
 func (c finding) Creates(inputs []Finding) ([]Finding, error) {
+	if len(inputs) == 0 {
+		return inputs, nil
+	}
+	
 	tx := c.gorm.Create(&inputs)
 
 	return inputs, tx.Error

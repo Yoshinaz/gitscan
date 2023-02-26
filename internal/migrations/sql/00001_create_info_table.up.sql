@@ -2,6 +2,7 @@ CREATE TABLE `info` (
       `id` varchar(55) NOT NULL,
       `name` varchar(150) NOT NULL,
       `url` varchar(150) NOT NULL,
+      `rule_set` varchar(40) NOT NULL,
       `status` varchar(20) NOT NULL,
       `commit` varchar(40) NOT NULL,
       `description` varchar(150) NOT NULL,

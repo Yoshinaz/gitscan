@@ -8,8 +8,8 @@ import (
 	"github.com/gitscan/http/git"
 	"github.com/gitscan/internal/database"
 	"github.com/gitscan/internal/middleware"
-	"github.com/gitscan/internal/service/repo"
-	"log"
+	"github.com/gitscan/internal/usecase"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,7 +25,7 @@ func StartServer() {
 	// kill -9 is syscall.SIGKILL but can't be caught, so don't need to add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	log.Info().Msg("Shutting down server...")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
@@ -34,20 +34,20 @@ func StartServer() {
 		cancel()
 	}()
 	if err := s.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown")
+		log.Fatal().Msg("Server forced to shutdown")
 	}
-	log.Println("Server exiting")
+	log.Info().Msg("Server exiting")
 }
 
 func run() (s *http.Server) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	db, err := database.New(cfg.DB)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	port := fmt.Sprintf(":%d", cfg.App.Port)
@@ -60,8 +60,8 @@ func run() (s *http.Server) {
 	workingChan := make(chan bool, cfg.App.MaxProcess)
 	v1 := ginEngine.Group("/v1")
 
-	r := repo.New()
-	git.SetRouterGroup(v1, r, db, workingChan)
+	u := usecase.New(db)
+	git.SetRouterGroup(v1, u, workingChan)
 
 	s = &http.Server{
 		Addr:           port,
@@ -71,11 +71,13 @@ func run() (s *http.Server) {
 		Handler:        ginEngine,
 	}
 
-	//TODO recovery for the queue and inprogress status
-
+	err = Recovery(u, workingChan)
+	if err != nil {
+		log.Warn().Msgf("recovery process has an error: %s", err.Error())
+	}
 	go func() {
 		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
+			log.Fatal().Msgf("listen: %s", err)
 		}
 	}()
 

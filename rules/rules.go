@@ -9,21 +9,28 @@ type Interface interface {
 	Process(c *object.Commit) ([]report.Finding, error)
 	Add(rule RuleInfoInterface)
 	GetMetaData(ruleID string) report.Metadata
+	RuleSet() string
 }
 
 type Rules struct {
-	rules map[string]RuleInfoInterface
+	ruleSet string
+	rules   map[string]RuleInfoInterface
 }
 
-func New() Interface {
+func New(ruleSet string) Interface {
 	rules := make(map[string]RuleInfoInterface, 0)
+	r := Rules{ruleSet: ruleSet, rules: rules}
 
-	return Rules{rules: rules}
+	return r.defaultSet()
 }
 
 func (r Rules) Add(rule RuleInfoInterface) {
 	info := rule.GetRuleInfo()
 	r.rules[info.RuleID] = rule
+}
+
+func (r Rules) RuleSet() string {
+	return r.ruleSet
 }
 
 func (r Rules) GetMetaData(ruleID string) report.Metadata {

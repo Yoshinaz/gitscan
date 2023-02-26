@@ -13,3 +13,7 @@ mock:
 	mockgen -destination=./mocks/db/mock_db_finding.go -package=dbMocks github.com/gitscan/internal/database FindingInterface
 	mockgen -destination=./mocks/db/mock_db_location.go -package=dbMocks github.com/gitscan/internal/database LocationInterface
 	mockgen -destination=./mocks/rule/mock_rule.go -package=ruleMocks github.com/gitscan/rules Interface
+
+test_and_cover:
+	go test -tags integration_test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+	go tool cover -func=coverage.txt

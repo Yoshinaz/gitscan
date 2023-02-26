@@ -2,9 +2,8 @@
 
 This is an application for detecting the private_key / public_key in github repository
 
-`run-tests.sh` runs a simplistic test and generates the API
-documentation below.
-
+## API Document
+api document could be found [here](https://documenter.getpostman.com/view/4792072/2s93CPrXt8)
 
 ## Pre required
 

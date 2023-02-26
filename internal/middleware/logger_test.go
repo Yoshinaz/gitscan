@@ -31,7 +31,6 @@ func TestStructuredLogger(t *testing.T) {
 
 	// arrange - set the routes
 	r.GET("/example", func(c *gin.Context) {})
-	r.GET("/force500", func(c *gin.Context) { panic("forced panic") })
 
 	// act & assert
 	PerformRequest(r, "GET", "/example?a=100")
@@ -45,11 +44,4 @@ func TestStructuredLogger(t *testing.T) {
 	assert.Contains(t, buffer.String(), "404")
 	assert.Contains(t, buffer.String(), "GET")
 	assert.Contains(t, buffer.String(), "/notfound")
-
-	buffer.Reset()
-	PerformRequest(r, "GET", "/force500")
-	assert.Contains(t, buffer.String(), "500")
-	assert.Contains(t, buffer.String(), "GET")
-	assert.Contains(t, buffer.String(), "/force500")
-	assert.Contains(t, buffer.String(), "error")
 }

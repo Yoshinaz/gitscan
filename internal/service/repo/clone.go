@@ -7,13 +7,13 @@ import (
 )
 
 func (r *Repo) Clone() error {
-	if r.URL == "" {
+	if r.url == "" {
 		return errors.New("must be init before use")
 	}
 	repo, err := gitLib.Clone(memory.NewStorage(), nil, &gitLib.CloneOptions{
-		URL: r.URL,
+		URL: r.url,
 	})
-	r.Repo = repo
+	r.repository = repo
 
 	if err != nil {
 		return err

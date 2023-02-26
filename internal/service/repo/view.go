@@ -2,6 +2,7 @@ package repo
 
 import (
 	"github.com/gitscan/constants/reqError"
+	"github.com/gitscan/constants/status"
 	"github.com/gitscan/internal/database"
 	"github.com/gitscan/internal/report"
 	"github.com/rs/zerolog/log"
@@ -10,19 +11,35 @@ import (
 )
 
 // ViewReport retrieve the repository's scan information
-func (r *Repo) ViewReport(db database.DB) (report.Info, error) {
-	l := log.With().Str("url", r.URL).Logger()
+func ViewReport(r Interface, db database.DB) (report.Info, error) {
+	name := r.Name()
+	url := r.URL()
+	l := log.With().Str("url", url).Logger()
 	l.Info().Msg("view report begin")
-	infoDB, err := db.Info().Find(database.Info{URL: r.URL})
+	infoDB, err := db.Info().Find(database.Info{URL: url})
 	if err != nil {
 		l.Warn().Msgf("database error: %s", err.Error())
 
 		return report.Info{
-			Name:        r.Name,
-			URL:         r.URL,
+			Name:        name,
+			URL:         url,
 			Status:      reqError.URL_ERROR.String(),
 			Description: "URL might be wrong or didn't scan yet",
 		}, err
+	}
+
+	if infoDB.Status != status.SUCCESS.String() {
+		return report.Info{
+			Name:        infoDB.Name,
+			URL:         infoDB.URL,
+			Status:      infoDB.Status,
+			EnqueuedAt:  infoDB.EnqueuedAt,
+			StartedAt:   infoDB.StartedAt,
+			FinishedAt:  infoDB.FinishedAt,
+			CreatedAt:   infoDB.CreatedAt,
+			Description: infoDB.Description,
+			Findings:    []report.Finding{},
+		}, nil
 	}
 
 	l.Info().Msg("get finding information")
@@ -31,21 +48,21 @@ func (r *Repo) ViewReport(db database.DB) (report.Info, error) {
 		l.Warn().Msgf("database error: %s", err.Error())
 
 		return report.Info{
-			Name:        r.Name,
-			URL:         r.URL,
+			Name:        name,
+			URL:         url,
 			Status:      reqError.INTERNAL_ERROR.String(),
 			Description: "INTERNAL ERROR",
 		}, err
 	}
 
 	l.Info().Msg("get location for each finding information")
-	findings, err := r.mappingFinding(findingDB, db)
+	findings, err := mappingFinding(r, findingDB, db)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		l.Warn().Msgf("database error: %s", err.Error())
 
 		return report.Info{
-			Name:        r.Name,
-			URL:         r.URL,
+			Name:        name,
+			URL:         url,
 			Status:      reqError.INTERNAL_ERROR.String(),
 			Description: "INTERNAL ERROR",
 		}, err
@@ -56,8 +73,8 @@ func (r *Repo) ViewReport(db database.DB) (report.Info, error) {
 		URL:         infoDB.URL,
 		Status:      infoDB.Status,
 		EnqueuedAt:  infoDB.EnqueuedAt,
-		StartedAt:   *infoDB.StartedAt,
-		FinishedAt:  *infoDB.FinishedAt,
+		StartedAt:   infoDB.StartedAt,
+		FinishedAt:  infoDB.FinishedAt,
 		CreatedAt:   infoDB.CreatedAt,
 		Description: infoDB.Description,
 		Findings:    findings,
@@ -65,7 +82,7 @@ func (r *Repo) ViewReport(db database.DB) (report.Info, error) {
 }
 
 // mappingFinding mapping finding database to report.Finding object
-func (r *Repo) mappingFinding(findingDB []database.Finding, db database.DB) ([]report.Finding, error) {
+func mappingFinding(r Interface, findingDB []database.Finding, db database.DB) ([]report.Finding, error) {
 	findings := make([]report.Finding, 0)
 	for _, v := range findingDB {
 		locationDB, err := db.Location().FindByFindingID(v.ID)
@@ -77,7 +94,7 @@ func (r *Repo) mappingFinding(findingDB []database.Finding, db database.DB) ([]r
 			Type:     v.Type,
 			RuleId:   v.RuleID,
 			Commit:   v.Commit,
-			Metadata: r.getMetadata(v.RuleID),
+			Metadata: getMetadata(r, v.RuleID),
 		}
 		if locationDB != nil {
 			location := mappingLocation(locationDB)
@@ -90,8 +107,8 @@ func (r *Repo) mappingFinding(findingDB []database.Finding, db database.DB) ([]r
 }
 
 // getMetadata get description and severity for ruleID
-func (r *Repo) getMetadata(ruleID string) report.Metadata {
-	return r.Rules.GetMetaData(ruleID)
+func getMetadata(r Interface, ruleID string) report.Metadata {
+	return r.Rules().GetMetaData(ruleID)
 }
 
 // mappingLocation mapping location database to report.Location object

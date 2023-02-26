@@ -7,21 +7,21 @@ import (
 
 type Interface interface {
 	Process(c *object.Commit) ([]report.Finding, error)
-	Add(rule ruleInfoInterface)
+	Add(rule RuleInfoInterface)
 	GetMetaData(ruleID string) report.Metadata
 }
 
 type Rules struct {
-	rules map[string]ruleInfoInterface
+	rules map[string]RuleInfoInterface
 }
 
 func New() Interface {
-	rules := make(map[string]ruleInfoInterface, 0)
+	rules := make(map[string]RuleInfoInterface, 0)
 
 	return Rules{rules: rules}
 }
 
-func (r Rules) Add(rule ruleInfoInterface) {
+func (r Rules) Add(rule RuleInfoInterface) {
 	info := rule.GetRuleInfo()
 	r.rules[info.RuleID] = rule
 }
@@ -46,7 +46,7 @@ func (r Rules) Process(c *object.Commit) ([]report.Finding, error) {
 	if err != nil {
 		return findings, err
 	}
-	detected := make(map[ruleInfoInterface][]report.Location)
+	detected := make(map[RuleInfoInterface][]report.Location)
 
 	//detect each file with all rules
 	err = fIter.ForEach(func(file *object.File) error {

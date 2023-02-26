@@ -12,7 +12,7 @@ type ruleInfo struct {
 	Type        string
 }
 
-type ruleInfoInterface interface {
+type RuleInfoInterface interface {
 	Process(file *object.File) (report.Location, bool, error)
 	GetRuleInfo() ruleInfo
 }

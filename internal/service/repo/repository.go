@@ -1,30 +1,55 @@
 package repo
 
 import (
-	"github.com/gitscan/internal/database"
-	"github.com/gitscan/internal/report"
 	"github.com/gitscan/rules"
 	gitLib "gopkg.in/src-d/go-git.v4"
 )
 
 type Interface interface {
-	Init(name, url string, rules rules.Interface)
 	Clone() error
-	Scan(db database.DB, working chan bool) (string, error)
-	ViewReport(db database.DB) (report.Info, error)
+	Name() string
+	URL() string
+	Rules() rules.Interface
+	Repo() *gitLib.Repository
+	GetHeadCommitHash() (string, error)
 }
 
 type Repo struct {
-	Name  string
-	URL   string
-	Repo  *gitLib.Repository
-	Rules rules.Interface
+	name       string
+	url        string
+	repository *gitLib.Repository
+	rules      rules.Interface
 }
 
-func New() Interface {
+func New(name, url string, rules rules.Interface) Interface {
 	return &Repo{
-		Name: "",
-		URL:  "",
-		Repo: nil,
+		name:  name,
+		url:   url,
+		rules: rules,
 	}
+}
+
+func (r *Repo) Repo() *gitLib.Repository {
+	return r.repository
+}
+
+func (r *Repo) Name() string {
+	return r.name
+}
+
+func (r *Repo) URL() string {
+	return r.url
+}
+
+func (r *Repo) Rules() rules.Interface {
+	return r.rules
+}
+
+func (r *Repo) GetHeadCommitHash() (string, error) {
+	ref, err := r.repository.Head()
+	if err != nil {
+		return "", err
+	}
+
+	return ref.Hash().String(), nil
 }

@@ -14,7 +14,7 @@ type SecretKey struct {
 	Type        string
 }
 
-func NewSecretKey() ruleInfoInterface {
+func NewSecretKey() RuleInfoInterface {
 	return SecretKey{
 		Description: "private / public key detected",
 		Severity:    "HIGH",

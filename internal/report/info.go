@@ -8,8 +8,8 @@ type Info struct {
 	Status      string
 	Description string
 	EnqueuedAt  time.Time
-	StartedAt   time.Time
-	FinishedAt  time.Time
+	StartedAt   *time.Time
+	FinishedAt  *time.Time
 	CreatedAt   time.Time
 	Findings    []Finding
 }

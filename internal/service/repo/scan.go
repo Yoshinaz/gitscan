@@ -16,11 +16,14 @@ import (
 
 // Scan for a request github repository url to find a secret in all commit history
 // don't scan for the duplicate url with the same head commit
-func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
-	l := log.With().Str("url", r.URL).Logger()
+func Scan(r Interface, db database.DB, working chan bool) (string, error) {
+	url := r.URL()
+	name := r.Name()
+
+	l := log.With().Str("url", url).Logger()
 	l.Info().Msg("scan begin")
 
-	if r.Repo == nil {
+	if r.Repo() == nil {
 		err := r.Clone()
 
 		if err != nil {
@@ -29,7 +32,7 @@ func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
 			return reqError.URL_ERROR.String(), err
 		}
 	}
-	ref, err := r.Repo.Head()
+	headCommit, err := r.GetHeadCommitHash()
 	if err != nil {
 		l.Error().Msg("could not retrieve head")
 
@@ -38,8 +41,8 @@ func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
 
 	// if the scan information of the latest commit exist, don't need to rescan again
 	// if it was failed will try to rescan again
-	infoDB, err := db.Info().Find(database.Info{URL: r.URL})
-	if err == nil && ref.Hash().String() == infoDB.Commit && infoDB.Status != status.FAILED.String() {
+	infoDB, err := db.Info().Find(database.Info{URL: url})
+	if err == nil && headCommit == infoDB.Commit && infoDB.Status != status.FAILED.String() {
 		l.Info().Msgf("the scan information exist with latest commit %s", infoDB.Commit)
 
 		return infoDB.Status, nil
@@ -56,10 +59,10 @@ func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
 	//create a new info record for the first time
 	if err == gorm.ErrRecordNotFound {
 		infoDB, err = db.Info().Create(database.Info{
-			Name:        r.Name,
-			URL:         r.URL,
+			Name:        name,
+			URL:         url,
 			Status:      status.QUEUED.String(),
-			Commit:      ref.Hash().String(),
+			Commit:      headCommit,
 			Description: "",
 			EnqueuedAt:  time.Now(),
 			StartedAt:   nil,
@@ -74,10 +77,12 @@ func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
 		return reqError.INTERNAL_ERROR.String(), err
 	}
 
+	l.Info().Msgf("enqueued for the latest commit %s", infoDB.Commit)
+	infoDB.Status = status.QUEUED.String()
 	// create go routine to wait until a free slot exist
 	go func() {
 		working <- true
-		go r.process(infoDB, db, scanAllCommit, working)
+		go process(r, infoDB, db, scanAllCommit, working)
 	}()
 
 	return infoDB.Status, nil
@@ -85,13 +90,15 @@ func (r *Repo) Scan(db database.DB, working chan bool) (string, error) {
 
 // process scan a request github repository url
 // finding for a secret from commit history
-func (r *Repo) process(infoDB database.Info, db database.DB, scanAllCommit bool, working chan bool) {
-	l := log.With().Str("url", r.URL).Logger()
+func process(r Interface, infoDB database.Info, db database.DB, scanAllCommit bool, working chan bool) {
+	url := r.URL()
+
+	l := log.With().Str("url", url).Logger()
 	l.Info().Msg("process begin")
 	currentTime := time.Now()
 	infoDB.StartedAt = &currentTime
 	// ... retrieves the branch pointed by HEAD
-	ref, err := r.Repo.Head()
+	ref, err := r.Repo().Head()
 	if err != nil {
 		l.Error().Msg("could not retrieve head")
 		processFailure(infoDB, db, "could not retrieve head commit")
@@ -100,7 +107,7 @@ func (r *Repo) process(infoDB database.Info, db database.DB, scanAllCommit bool,
 	}
 
 	// ... retrieves the commit history
-	cIter, err := r.Repo.Log(&gitLib.LogOptions{From: ref.Hash()})
+	cIter, err := r.Repo().Log(&gitLib.LogOptions{From: ref.Hash()})
 	if err != nil {
 		l.Error().Msg("retrieve commit history failed")
 		processFailure(infoDB, db, "retrieve commit history failed")
@@ -118,7 +125,7 @@ func (r *Repo) process(infoDB database.Info, db database.DB, scanAllCommit bool,
 			skip = true
 		}
 		if !skip || scanAllCommit {
-			findings, err := r.Rules.Process(c)
+			findings, err := r.Rules().Process(c)
 			if err != nil {
 				errWrap := errors.New(fmt.Sprintf("rules processing error: %s", err.Error()))
 				l.Error().Msgf(errWrap.Error())

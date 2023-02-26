@@ -15,7 +15,7 @@ func view(u usecase.UseCase) gin.HandlerFunc {
 			return
 		}
 
-		report, err := u.View(req.Name, req.URL, req.RulesSet)
+		report, err := u.View(req.Name, req.URL, req.AllCommit, req.RulesSet)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, report)
 

@@ -21,18 +21,18 @@ func New(db database.DB) UseCase {
 	return UseCase{DB: db}
 }
 
-func (u UseCase) Scan(name, url, ruleSet string, scanAll bool, working chan bool) (string, error) {
+func (u UseCase) Scan(name, url, ruleSet string, scanAll string, working chan bool) (string, error) {
 	rule := rules.New(ruleSet)
 	r := repo.New(name, url, rule)
 
 	return repo.Scan(r, scanAll, u.DB, working)
 }
 
-func (u UseCase) View(name, url, ruleSet string) (report.Info, error) {
+func (u UseCase) View(name, url, allCommit, ruleSet string) (report.Info, error) {
 	rule := rules.New(ruleSet)
 	r := repo.New(name, url, rule)
 
-	return repo.ViewReport(r, u.DB)
+	return repo.ViewReport(r, allCommit, u.DB)
 }
 
 func (u UseCase) Recovery(infoDB database.Info, working chan bool) {

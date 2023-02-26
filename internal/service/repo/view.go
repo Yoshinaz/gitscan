@@ -11,7 +11,7 @@ import (
 )
 
 // ViewReport retrieve the repository's scan information
-func ViewReport(r Interface, db database.DB) (report.Info, error) {
+func ViewReport(r Interface, allCommit string, db database.DB) (report.Info, error) {
 	name := r.Name()
 	url := r.URL()
 	l := log.With().Str("url", url).Logger()
@@ -43,7 +43,16 @@ func ViewReport(r Interface, db database.DB) (report.Info, error) {
 	}
 
 	l.Info().Msg("get finding information")
-	findingDB, err := db.Finding().FindByInfoID(infoDB.ID)
+	var findingDB []database.Finding
+	var finding database.Finding
+	if allCommit == "true" {
+		findingDB, err = db.Finding().FindByInfoID(infoDB.ID)
+	} else {
+		finding, err = db.Finding().FindByInfoIDAndCommit(infoDB.ID, infoDB.Commit)
+		findingDB = make([]database.Finding, 0)
+		findingDB = append(findingDB, finding)
+	}
+
 	if err != nil && err != gorm.ErrRecordNotFound {
 		l.Warn().Msgf("database error: %s", err.Error())
 

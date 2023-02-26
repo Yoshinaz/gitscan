@@ -15,6 +15,7 @@ type Info struct {
 	Status      string
 	Commit      string
 	Description string
+	AllCommit   string
 	EnqueuedAt  time.Time
 	StartedAt   *time.Time
 	FinishedAt  *time.Time
@@ -25,7 +26,6 @@ type InfoInterface interface {
 	Update(input Info) (Info, error)
 	Find(filter Info) (Info, error)
 	FindRecoveryInfo() ([]Info, error)
-	FindByURLAndStatus(url string, status status.Info) (Info, error)
 }
 
 type info struct {
@@ -54,13 +54,6 @@ func (c info) Find(filter Info) (Info, error) {
 func (c info) FindRecoveryInfo() ([]Info, error) {
 	var models []Info
 	tx := c.gorm.Where("status IN ?", []string{status.QUEUED.String(), status.INPROGRESS.String()}).Find(&models)
-
-	return models, tx.Error
-}
-
-func (c info) FindByURLAndStatus(url string, status status.Info) (Info, error) {
-	var models Info
-	tx := c.gorm.Model(&Info{}).Where(&Info{URL: url, Status: status.String()}).First(&models)
 
 	return models, tx.Error
 }

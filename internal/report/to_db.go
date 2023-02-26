@@ -23,7 +23,9 @@ func SaveFindings(infoID string, commit string, findings []Finding, db database.
 
 		dbFindings = append(dbFindings, record)
 	}
-
+	if len(dbFindings) == 0 {
+		return nil
+	}
 	_, err := db.Finding().Creates(dbFindings)
 	if err != nil {
 		return err

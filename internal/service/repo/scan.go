@@ -16,7 +16,7 @@ import (
 
 // Scan for a request github repository url to find a secret in all commit history
 // don't scan for the duplicate url with the same head commit
-func Scan(r Interface, scanAllCommit bool, db database.DB, working chan bool) (string, error) {
+func Scan(r Interface, scanAllCommit string, db database.DB, working chan bool) (string, error) {
 	url := r.URL()
 	name := r.Name()
 	ruleSet := r.Rules().RuleSet()
@@ -43,7 +43,7 @@ func Scan(r Interface, scanAllCommit bool, db database.DB, working chan bool) (s
 	// if the scan information of the latest commit exist, don't need to rescan again
 	// if it was failed will try to rescan again
 	infoDB, err := db.Info().Find(database.Info{URL: url})
-	if err == nil && headCommit == infoDB.Commit && infoDB.Status != status.FAILED.String() {
+	if isResultExist(infoDB, headCommit, scanAllCommit) {
 		l.Info().Msgf("the scan information exist with latest commit %s", infoDB.Commit)
 
 		return infoDB.Status, nil
@@ -64,6 +64,7 @@ func Scan(r Interface, scanAllCommit bool, db database.DB, working chan bool) (s
 			Status:      status.QUEUED.String(),
 			RuleSet:     ruleSet,
 			Commit:      headCommit,
+			AllCommit:   scanAllCommit,
 			Description: "",
 			EnqueuedAt:  time.Now(),
 			StartedAt:   nil,
@@ -80,9 +81,25 @@ func Scan(r Interface, scanAllCommit bool, db database.DB, working chan bool) (s
 	l.Info().Msgf("enqueued for the latest commit %s", infoDB.Commit)
 	infoDB.Status = status.QUEUED.String()
 
-	ProcessScan(r, infoDB, db, scanAllCommit, working)
+	ProcessScan(r, infoDB, db, scanAllCommit == "true", working)
 
 	return infoDB.Status, nil
+}
+
+func isResultExist(infoDB database.Info, headCommit string, allCommit string) bool {
+	if headCommit == infoDB.Commit && infoDB.Status != status.FAILED.String() {
+		//if used to scan all in database, result already exist in any case
+		if infoDB.AllCommit == "true" {
+			return true
+		}
+
+		//if user does not request to scan all, the result already exist
+		if allCommit == "false" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func ProcessScan(r Interface, infoDB database.Info, db database.DB, scanAllCommit bool, working chan bool) {

@@ -10,6 +10,7 @@ func (r *Repo) Clone() error {
 	if r.url == "" {
 		return errors.New("must be init before use")
 	}
+
 	repo, err := gitLib.Clone(memory.NewStorage(), nil, &gitLib.CloneOptions{
 		URL: r.url,
 	})

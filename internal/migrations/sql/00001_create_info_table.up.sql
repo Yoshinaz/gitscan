@@ -5,6 +5,7 @@ CREATE TABLE `info` (
       `rule_set` varchar(40) NOT NULL,
       `status` varchar(20) NOT NULL,
       `commit` varchar(40) NOT NULL,
+      `all_commit` varchar(10) NOT NULL,
       `description` varchar(150) NOT NULL,
       `enqueued_at` timestamp NOT NULL,
       `started_at` timestamp NULL DEFAULT NULL,

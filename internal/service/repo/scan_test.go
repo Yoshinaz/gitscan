@@ -49,7 +49,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.QUEUED.String(), s)
@@ -74,7 +74,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.QUEUED.String(), s)
@@ -99,7 +99,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.INPROGRESS.String(), s)
@@ -124,7 +124,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.Nil(t, err)
 		assert.Equal(t, status.SUCCESS.String(), s)
@@ -159,7 +159,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -195,7 +195,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -231,7 +231,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().Process(gomock.Any()).Times(numCommit).Return([]report.Finding{}, nil)
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 		time.Sleep(2 * time.Second)
 
 		assert.Nil(t, err)
@@ -253,7 +253,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.URL_ERROR.String(), s)
@@ -274,7 +274,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.HEAD_ERROR.String(), s)
@@ -298,7 +298,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.INTERNAL_ERROR.String(), s)
@@ -323,7 +323,7 @@ func TestRepo_Scan(t *testing.T) {
 		rulesData.EXPECT().RuleSet().Return("1234")
 
 		w := make(chan bool, 1)
-		s, err := repo.Scan(repoMock, false, db, w)
+		s, err := repo.Scan(repoMock, "false", db, w)
 		assert.NotNil(t, err)
 		assert.Equal(t, reqError.INTERNAL_ERROR.String(), s)
 	})

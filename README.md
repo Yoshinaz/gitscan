@@ -45,7 +45,7 @@ The REST API to the repository scan app is described below.
 
 ### Request
 
-`GET /thing/id`
+`Post /v1/repo/view`
 
     curl -k -d {\"name\":\"test\",\"url\":\"https://github.com/Yoshinaz/test_secret\",\"rules_set\":\"any\",\"all_commit\":\"false\"} http://localhost:8080/v1/repo/view
 

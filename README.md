@@ -26,8 +26,17 @@ The REST API to the repository scan app is described below.
 `Post /v1/repo/scan`
 
     curl -k -d {\"name\":\"test\",\"url\":\"https://github.com/Yoshinaz/test_secret\",\"rules_set\":\"any\",\"all_commit\":\"false\"} http://localhost:8080/v1/repo/scan
-### Response
 
+### Request body
+    {
+        "name": "test_repo", //Repository name (any value is ok)
+        "url": "https://github.com/Yoshinaz/test_secret", //github url that want to be scaned
+        "rules_set": "123", //rules set number ( currently we have only a default set support (1 rule) )
+        "all_commit": "true" // true -> scan for all commit, force rescan
+                             // else -> scan for the lastest commit
+    }
+
+### Response
     {
         "status": "QUEUED"
     }
@@ -39,6 +48,13 @@ The REST API to the repository scan app is described below.
 `GET /thing/id`
 
     curl -k -d {\"name\":\"test\",\"url\":\"https://github.com/Yoshinaz/test_secret\",\"rules_set\":\"any\",\"all_commit\":\"false\"} http://localhost:8080/v1/repo/view
+
+     {
+        "name": "test_repo", //Repository name (any value is ok)
+        "url": "https://github.com/Yoshinaz/test_secret", //github url that want to be scaned
+        "all_commit": "true" // true -> view result for all commit, 
+                             // else only for the latest commit
+    }
 
 ### Response
 

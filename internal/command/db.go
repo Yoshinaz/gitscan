@@ -2,9 +2,10 @@ package command
 
 import (
 	"errors"
-	"guardrail/gitscan/config"
-	"guardrail/gitscan/internal/database"
-	"guardrail/gitscan/internal/migrations"
+	"github.com/gitscan/config"
+	"github.com/gitscan/internal/database"
+	"github.com/gitscan/internal/migrations"
+	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/spf13/cobra"
 )

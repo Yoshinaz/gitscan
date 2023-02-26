@@ -1,8 +1,8 @@
 package rules
 
 import (
+	"github.com/gitscan/internal/report"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"guardrail/gitscan/internal/report"
 	"strconv"
 	"strings"
 )
@@ -12,6 +12,15 @@ type SecretKey struct {
 	Severity    string
 	RuleID      string
 	Type        string
+}
+
+func NewSecretKey() ruleInfoInterface {
+	return SecretKey{
+		Description: "private / public key detected",
+		Severity:    "HIGH",
+		RuleID:      "G401",
+		Type:        "sast",
+	}
 }
 
 func (r SecretKey) Process(file *object.File) (report.Location, bool, error) {
@@ -36,8 +45,8 @@ func (r SecretKey) Process(file *object.File) (report.Location, bool, error) {
 	}, len(position) != 0, nil
 }
 
-func (r SecretKey) GetRuleInfo() RuleInfo {
-	return RuleInfo{
+func (r SecretKey) GetRuleInfo() ruleInfo {
+	return ruleInfo{
 		Description: r.Description,
 		Severity:    r.Severity,
 		RuleID:      r.RuleID,

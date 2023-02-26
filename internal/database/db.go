@@ -2,9 +2,9 @@ package database
 
 import (
 	"fmt"
+	"github.com/gitscan/config"
+	"github.com/gitscan/internal/utils/ulid"
 	"github.com/rs/zerolog/log"
-	"guardrail/gitscan/config"
-	"guardrail/gitscan/internal/utils/ulid"
 	"time"
 
 	"gorm.io/driver/mysql"

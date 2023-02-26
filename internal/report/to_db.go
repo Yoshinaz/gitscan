@@ -1,12 +1,16 @@
 package report
 
 import (
-	"guardrail/gitscan/constants/status"
-	"guardrail/gitscan/internal/database"
+	"github.com/gitscan/constants/status"
+	"github.com/gitscan/internal/database"
 	"strings"
 )
 
 func SaveFindings(infoID string, commit string, findings []Finding, db database.DB) error {
+	if len(findings) == 0 {
+		return nil
+	}
+
 	dbFindings := make([]database.Finding, 0)
 	for _, v := range findings {
 		record := database.Finding{
@@ -51,7 +55,9 @@ func saveLocation(infoID string, commit string, findings []Finding, db database.
 			dbLocations = append(dbLocations, record)
 		}
 	}
-
+	if len(dbLocations) == 0 {
+		return nil
+	}
 	_, err := db.Location().Creates(dbLocations)
 
 	return err

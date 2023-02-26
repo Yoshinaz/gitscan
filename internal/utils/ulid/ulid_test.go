@@ -1,8 +1,8 @@
 package ulid_test
 
 import (
+	"github.com/gitscan/internal/utils/ulid"
 	"github.com/stretchr/testify/assert"
-	"guardrail/gitscan/internal/utils/ulid"
 	"strings"
 	"testing"
 )

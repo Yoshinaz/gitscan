@@ -1,36 +1,33 @@
 package rules
 
 import (
+	"github.com/gitscan/internal/report"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"guardrail/gitscan/internal/report"
 )
 
-type RuleInfo struct {
-	Description string
-	Severity    string
-	RuleID      string
-	Type        string
+type Interface interface {
+	Process(c *object.Commit) ([]report.Finding, error)
+	Add(rule ruleInfoInterface)
+	GetMetaData(ruleID string) report.Metadata
 }
 
-type RuleInterface interface {
-	Process(file *object.File) (report.Location, bool, error)
-	GetRuleInfo() RuleInfo
+type Rules struct {
+	rules map[string]ruleInfoInterface
 }
 
-var rules []RuleInterface
+func New() Interface {
+	rules := make(map[string]ruleInfoInterface, 0)
 
-func init() {
-	rules = make([]RuleInterface, 0)
-	rules = append(rules, SecretKey{
-		Description: "private / public key detected",
-		Severity:    "HIGH",
-		RuleID:      "G401",
-		Type:        "sast",
-	})
+	return Rules{rules: rules}
 }
 
-func GetMetaData(ruleID string) report.Metadata {
-	for _, v := range rules {
+func (r Rules) Add(rule ruleInfoInterface) {
+	info := rule.GetRuleInfo()
+	r.rules[info.RuleID] = rule
+}
+
+func (r Rules) GetMetaData(ruleID string) report.Metadata {
+	for _, v := range r.rules {
 		ruleInfo := v.GetRuleInfo()
 		if ruleInfo.RuleID == ruleID {
 			return report.Metadata{
@@ -43,17 +40,17 @@ func GetMetaData(ruleID string) report.Metadata {
 	return report.Metadata{}
 }
 
-func Process(c *object.Commit) ([]report.Finding, error) {
+func (r Rules) Process(c *object.Commit) ([]report.Finding, error) {
 	findings := make([]report.Finding, 0)
 	fIter, err := c.Files()
 	if err != nil {
 		return findings, err
 	}
-	detected := make(map[RuleInterface][]report.Location)
+	detected := make(map[ruleInfoInterface][]report.Location)
 
 	//detect each file with all rules
 	err = fIter.ForEach(func(file *object.File) error {
-		for _, rule := range rules {
+		for _, rule := range r.rules {
 			location, found, err := rule.Process(file)
 			if err != nil {
 				return err

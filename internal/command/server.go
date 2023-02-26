@@ -1,8 +1,8 @@
 package command
 
 import (
+	"github.com/gitscan/http"
 	"github.com/spf13/cobra"
-	"guardrail/gitscan/http"
 )
 
 func configureServerCommand(command *cobra.Command) {
@@ -20,7 +20,7 @@ func configureServerCommand(command *cobra.Command) {
 }
 
 func startServer(cmd *cobra.Command, args []string) error {
-	cmd.Println(http.StartServer())
+	http.StartServer()
 
 	return nil
 }

@@ -1,7 +1,7 @@
 package database
 
 import (
-	"guardrail/gitscan/constants/status"
+	"github.com/gitscan/constants/status"
 	"time"
 
 	"gorm.io/gorm"
@@ -22,7 +22,8 @@ type Info struct {
 type InfoInterface interface {
 	Create(input Info) (Info, error)
 	Update(input Info) (Info, error)
-	FindByURL(url string, status status.Info) (Info, error)
+	Find(filter Info) (Info, error)
+	FindByURLAndStatus(url string, status status.Info) (Info, error)
 }
 
 type info struct {
@@ -41,7 +42,14 @@ func (c info) Update(input Info) (Info, error) {
 	return input, tx.Error
 }
 
-func (c info) FindByURL(url string, status status.Info) (Info, error) {
+func (c info) Find(filter Info) (Info, error) {
+	var models Info
+	tx := c.gorm.Model(&Info{}).Where(&filter).First(&models)
+
+	return models, tx.Error
+}
+
+func (c info) FindByURLAndStatus(url string, status status.Info) (Info, error) {
 	var models Info
 	tx := c.gorm.Model(&Info{}).Where(&Info{URL: url, Status: status.String()}).First(&models)
 

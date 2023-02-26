@@ -1,6 +1,6 @@
 package main
 
-import "guardrail/gitscan/internal/command"
+import "github.com/gitscan/internal/command"
 
 func main() {
 	command.Execute()
